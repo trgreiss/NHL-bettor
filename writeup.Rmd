@@ -1,0 +1,69 @@
+---
+title: "NHL BettoR explanations"
+author: "Trevor Greissinger"
+date: "10/28/2019"
+output: html_document
+---
+
+### Quick reference
+
+#### Odds table glossary
+
+* Team: NHL team.  It may seem redundant to have both teams listed, but the incorporation of live odds into this algorithm means that as the game progresses, the recommended bet may change.  In this case, placing a wager on the newly recommended bet could hedge the original bet.
+* Bovada odds: the most recent moneyline odds from Bovada.
+* Implied win probability: the probability based on the Bovada odds (see **Betting primer** below)
+* Expected win probability: the live win probability as calculated by Moneypuck.
+* Kelly criterion: The recommended fraction of a bankroll to wager in an idealized scenario.
+* Units: the recommended number of units to wager, calculated by $\frac{f*100}{4}$
+
+#### Tips
+
+* If the odds or recommended unit number look really funky, don't bet it!  There's probably a delay from either Bovada or Moneypuck, so the probabilities aren't in sync.  This is especially likely to happen immediately after a goal is scored.
+* Only bet within your means!  This tool is designed to make money for a diligent gambler, but there's no guarantee of success.  This is part of the reason the unit size has been scaled down.
+* Check this tool throughout the game!  There may be a positive expected value bet that pops up during the game as the lines move.
+
+### Algorithm
+
+This tool is designed to find inefficiencies in the betting market for NHL games and help you make positive expected value bets on which team will win.  It uses the most recent moneyline odds from [Bovada](https://www.bovada.lv/sports/hockey/nhl) to calculate the implied probability of a win for each team and compares them to the real-time probabilities from [Moneypuck](http://moneypuck.com).
+
+#### Betting primer
+
+Consider the following example:  On October 28, 2019, the Arizona Coyotes play at the Buffalo Sabres.  The odds the morning of the game are listed as Arizona Coyotes +105 @ Buffalo Sabres -135.  These are quoted in American odds, which take some manipulating to find the implied probabilities, according to this formula: \[
+Implied\ Prob=\left\{\begin{matrix} -\frac{odds}{100-odds},\ if odds < 0\\ \frac{100}{100+odds},\ if odds > 0 \end{matrix}\right.
+\]
+
+In this case, to convert the underdog Arizona's odds into a probability, we calculate \[
+\frac{100}{100 + 105} \approx 0.488
+\]
+
+Likewise for the favored Sabres, using the other part of the formula: \[
+\frac{135}{100-(-135)} \approx 0.574
+\]
+
+Note that the implied probabilities don't sum to 100 because of something called the *vig*, which is how the oddsmaker is ensured of a profit regardless of the game's outcome.  This is also known as "juicing" the odds.
+
+#### Implied vs. expected win probability
+
+Now that we know what the oddsmaker expects the outcome of the game to be, we can compare that to a more sophisticated model to find an edge.  Moneypuck's model, explained in greater detail [here](http://moneypuck.com/about.htm), uses a Bayesian approach, treating their pre-game prediction model as the prior and updating with score information as the game progresses.  This model is one of the most accurate publically available, especially later in the game.  
+
+The ultimate goal in this gambling strategy is to make a series of positive expected value bets based on the difference between the bookmaker's implied probability and the model's expected probability.  If Moneypuck gives teams better odds than Bovada, the algorithm will likely recommend placing a bet.
+
+#### The Kelly criterion and bet sizing
+
+To recommend the optimal bet amount, I've chosen to use the **Kelly criterion**.  This is a formula that optimizes bet size for a wager where both the odds and true probability are known.  For an event like a hockey game where there is one winner and one loser, the Kelly criterion is formulated as: \[
+f=\frac{bp-q}{b}
+\] where 
+* $f$ is the Kelly criterion;
+* $b$ is the net odds of the wager, stated as "$b$ to 1 odds";
+* $p$ is the probability of winning;
+* $q$ is the probability of losing, or $1-p$.
+
+When $f$ is positive, it represents the fraction of the current bankroll that should be bet in order to maximize the odds of making money in the long run.  When $f$ is 0 or negative, that bet should not be made.
+
+In traditional gambling, the gambler's betting **unit** is one percent of her total bankroll.  To find the optimal number of units to bet according to the Kelly criterion, simply multiply the criterion by 100.  This, however, is a highly risky strategy in the real world.  The Kelly criterion is calculated based on an idealized gambling model, where the same wager is made with the same odds an infinite number of times.  In the interest of bankroll management, the recommended unit should be scaled down (here by a factor of 4).  It is also important that the gambler's personal definition of a unit change as the size of his bankroll fluctuates.  The unit should **always** be one percent of the bankroll.
+
+A thorough proof of the Kelly criterion can be found in J.L. Kelly, Jr.'s [1956 paper](http://www.herrold.com/brokerage/kelly.pdf) introducing the concept.  For an explanation of why the recommended units have been scaled down, see [this article](https://www.lesswrong.com/posts/BZ6XaCwN4QGgH9CxF/the-kelly-criterion).
+
+### Known issues
+
+As with any tool that incorporates live information from different sources, there's a certain amount of disconnect and delay.  There will be times (especially after a goal is scored) where Bovada suspends wagering until it can set a new, "accurate" price.  When this occurs, the quoted odds default on the back end to the opening line.  If the recommended bet size or if the difference between implied and expected probabilities seems too big, it probably is.  In that case, don't et it!

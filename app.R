@@ -19,8 +19,17 @@ ui <- fluidPage(
     
     sidebarLayout(
         sidebarPanel(
+            helpText(
+                "Enter the current size of your bankroll, then click the Refresh button"
+            ),
+            numericInput(inputId = "portfolio",
+                         label = "Bankroll size ($)",
+                         value = 100,
+                         min = 0),
+            br(),
             actionButton(inputId = "update",
                          label = "Refresh odds"),
+            br(),
             br(),
             helpText(
                 "This tool compares live odds from Bovada",
@@ -136,15 +145,20 @@ server <- function(input, output) {
             mutate(net.odds = 1 / bovada.prob - 1,
                    kelly = (net.odds * moneypuck.prob - (1 - moneypuck.prob)) / net.odds %>%
                        round(4),
-                   units = if_else(kelly > 0, kelly * 100 / 4, 0)) %>%
+                   units = if_else(kelly > 0, kelly * 100 / 4, 0),
+                   bet.size = input$portfolio * units / 100) %>%
             select(Team = team,
                    `Bovada odds` = odds,
                    `Implied win probability` = bovada.prob,
                    `Expected win probability` = moneypuck.prob,
                    `Kelly criterion` = kelly,
-                   `Units to wager` = units) %>%
+                   `Units to wager` = units,
+                   `Bet size ($)` = bet.size) %>%
             datatable() %>%
-            formatRound(c("Kelly criterion", "Units to wager"), 3)
+            formatRound(columns = c("Kelly criterion", "Units to wager"), 
+                        digits = 3) %>%
+            formatRound(columns = 7, 
+                        digits = 2)
     })
     output$odds <- renderDataTable({
         odds.table()

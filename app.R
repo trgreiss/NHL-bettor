@@ -15,7 +15,7 @@ library(DT)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-    titlePanel("NHL BettoR"),
+    titlePanel("NHL BettoR "),
     
     sidebarLayout(
         sidebarPanel(
@@ -72,6 +72,8 @@ server <- function(input, output) {
         
         i_counter(i_counter() + 1)
     })
+    
+    curr.date <- Sys.Date()
     moneypuck.link <- paste0("http://moneypuck.com/moneypuck/dates/",
                              format(Sys.Date(), 
                                     format = "%Y%m%d"),
@@ -86,7 +88,7 @@ server <- function(input, output) {
             date <- bovada.live()[[1]][[2]][[i]]$link %>%
                 str_sub(-12, -5) %>%
                 as.Date(format = "%Y%m%d")
-            if (date != Sys.Date()) break
+            if (date != as.Date(Sys.time() - 3600*5)) break
             
             away.name <- bovada.live()[[1]][[2]][[i]][[17]][[1]][[5]][[1]][[9]][[1]]$description
             home.name <- bovada.live()[[1]][[2]][[i]][[17]][[1]][[5]][[1]][[9]][[2]]$description

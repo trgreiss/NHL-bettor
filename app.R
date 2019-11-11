@@ -75,7 +75,7 @@ server <- function(input, output) {
     
     curr.date <- Sys.Date()
     moneypuck.link <- paste0("http://moneypuck.com/moneypuck/dates/",
-                             format(Sys.Date(), 
+                             format(as.Date(Sys.time() - 3600 * 5), 
                                     format = "%Y%m%d"),
                              ".htm")
     
